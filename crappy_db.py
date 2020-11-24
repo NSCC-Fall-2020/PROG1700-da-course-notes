@@ -11,6 +11,27 @@ def create_record(id, first_name, last_name):
     return f"{id},{first_name},{last_name}\n"
 
 
+def get_fields(line):
+    id, first_name, last_name = line.rstrip('\n').lower().split(',')
+    return {"id":id, "first_name":first_name, "last_name":last_name}
+
+
+def read_file():
+    infile = open(DB_FILENAME)
+    for line in infile:
+        d = get_fields(line)
+        yield d
+    infile.close()
+
+
+def update_file():
+    outfile = open(TMP_FILENAME, "w")
+    for d in read_file():
+        outfile.write(create_record(**d))
+    outfile.close()
+    os.replace(TMP_FILENAME, DB_FILENAME)
+
+
 def setup():
     # create a folder called 'data'
     if not os.path.isdir('data'):
@@ -32,36 +53,31 @@ def insert_data():
 
 
 def select_data():
-    with open(DB_FILENAME) as f:
-        for line in f:
-            id, first_name, last_name = line.rstrip('\n').split(',')
-            print(f"id:{id}, name: {first_name} {last_name}")
+    for d in read_file():
+        print(f"id:{d['id']}, name: {d['first_name']} {d['last_name']}")
 
 
-def delete_data(surname):
-    infile = open(DB_FILENAME)
+def delete_data(last_name):
     outfile = open(TMP_FILENAME, "w")
-    for line in infile:
-        id, first_name, last_name = line.rstrip('\n').split(',')
-        if last_name.lower() != surname.lower():
-            outfile.write(create_record(id, first_name, last_name))
+    for d in read_file():
+        if d['last_name'] != last_name.lower():
+            record = create_record(**d)
+        else:
+            record = create_record(**d)
+        outfile.write(record)
     outfile.close()
-    infile.close()
     os.replace(TMP_FILENAME, DB_FILENAME)
 
 
 def update_data():
-    infile = open(DB_FILENAME)
     outfile = open(TMP_FILENAME, "w")
-    for line in infile:
-        id, first_name, last_name = line.rstrip('\n').split(',')
-        if id.lower() == "w000003":
-            record = create_record("w000002", first_name, last_name)
+    for d in read_file():
+        if d['id'] != "w000003":
+            record = create_record(**d)
         else:
-            record = create_record(id, first_name, last_name)
+            record = create_record("w000002", d['first_name'], d['last_name'])
         outfile.write(record)
     outfile.close()
-    infile.close()
     os.replace(TMP_FILENAME, DB_FILENAME)
 
 
