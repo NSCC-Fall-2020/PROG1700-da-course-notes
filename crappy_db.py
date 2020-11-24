@@ -24,11 +24,18 @@ def read_file():
     infile.close()
 
 
-def update_file():
+def create_temp_file():
     outfile = open(TMP_FILENAME, "w")
-    for d in read_file():
-        outfile.write(create_record(**d))
     outfile.close()
+
+
+def update_file(fields):
+    outfile = open(TMP_FILENAME, "a")
+    outfile.write(create_record(**fields))
+    outfile.close()
+
+
+def replace_file():
     os.replace(TMP_FILENAME, DB_FILENAME)
 
 
@@ -58,27 +65,20 @@ def select_data():
 
 
 def delete_data(last_name):
-    outfile = open(TMP_FILENAME, "w")
+    create_temp_file()
     for d in read_file():
         if d['last_name'] != last_name.lower():
-            record = create_record(**d)
-        else:
-            record = create_record(**d)
-        outfile.write(record)
-    outfile.close()
-    os.replace(TMP_FILENAME, DB_FILENAME)
+            update_file(d)
+    replace_file()
 
 
 def update_data():
-    outfile = open(TMP_FILENAME, "w")
+    create_temp_file()
     for d in read_file():
-        if d['id'] != "w000003":
-            record = create_record(**d)
-        else:
-            record = create_record("w000002", d['first_name'], d['last_name'])
-        outfile.write(record)
-    outfile.close()
-    os.replace(TMP_FILENAME, DB_FILENAME)
+        if d['id'] == "w000003":
+            d['id'] = "w000002"
+        update_file(d)
+    replace_file()
 
 
 def main():
